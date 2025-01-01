@@ -71,4 +71,45 @@ const show = async (req, res) => {
   }
 };
 
-module.exports = { create, index, show };
+const update = async (req, res) => {
+  const { title, content } = req.body;
+
+  try {
+    const post = await Post.findById(req.params.id).populate(
+      "author",
+      "name email"
+    );
+
+    if (!post) {
+      return res.status(404).json({
+        status: "error",
+        message: "Post not found",
+      });
+    }
+
+    if (post.author.id.toString() !== req.user.id) {
+      return res.status(403).json({
+        status: "error",
+        message: "Unauthorized",
+      });
+    }
+
+    post.title = title || post.title;
+    post.content = content || post.content;
+
+    const updatedPost = await post.save();
+    res.status(200).json({
+      status: "success",
+      data: {
+        updatedPost,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "failed",
+      message: error.message,
+    });
+  }
+};
+
+module.exports = { create, index, show, update };
