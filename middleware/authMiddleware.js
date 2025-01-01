@@ -25,7 +25,7 @@ const authMiddleware = async (req, res, next) => {
   if (!token) {
     res.status(401).json({
       status: "error",
-      message: "Unauthorized, no token",
+      message: "Unauthenticated, no token",
     });
   }
 };
