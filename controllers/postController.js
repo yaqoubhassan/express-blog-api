@@ -43,4 +43,32 @@ const index = async (req, res) => {
   }
 };
 
-module.exports = { create, index };
+const show = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id).populate(
+      "author",
+      "name email"
+    );
+
+    if (!post) {
+      return res.status(404).json({
+        status: "error",
+        message: "Post not found",
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        post,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "failed",
+      message: error.message,
+    });
+  }
+};
+
+module.exports = { create, index, show };
