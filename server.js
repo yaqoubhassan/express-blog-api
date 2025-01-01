@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const userRoutes = require("./routes/userRoutes");
 
 dotenv.config({ path: "./config.env" });
 
@@ -17,9 +18,11 @@ mongoose
     console.log("MongoDB connection error: ", err);
   });
 
-app.get("/", (req, res) => {
-  res.send("API is running...");
-});
+// app.get("/", (req, res) => {
+//   res.send("API is running...");
+// });
+
+app.use("/api/users", userRoutes);
 
 const port = process.env.PORT || 3000;
 
