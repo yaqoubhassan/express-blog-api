@@ -24,4 +24,23 @@ const create = async (req, res) => {
   }
 };
 
-module.exports = { create };
+const index = async (req, res) => {
+  try {
+    const posts = await Post.find()
+      .populate("author", "name email")
+      .sort({ createdAt: -1 });
+    res.status(200).json({
+      status: "success",
+      data: {
+        posts,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "failed",
+      message: error.message,
+    });
+  }
+};
+
+module.exports = { create, index };
