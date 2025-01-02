@@ -20,6 +20,9 @@ const store = async (req, res) => {
       post: req.params.postId,
     });
 
+    post.comments.push(comment._id);
+    await post.save();
+
     res.status(201).json({
       status: "success",
       data: {
