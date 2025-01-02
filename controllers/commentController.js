@@ -34,4 +34,24 @@ const store = async (req, res) => {
   }
 };
 
-module.exports = { store };
+const index = async (req, res) => {
+  try {
+    const comments = await Comment.find({ post: req.params.postId })
+      .populate("author", "name email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        comments,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "failed",
+      message: error.message,
+    });
+  }
+};
+
+module.exports = { store, index };
