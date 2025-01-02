@@ -30,6 +30,10 @@ const index = async (req, res) => {
 
     const posts = await Post.find()
       .populate("author", "name email")
+      .populate({
+        path: "comments",
+        populate: { path: "author", select: "name email" },
+      })
       .sort({ createdAt: sortOrder });
     res.status(200).json({
       status: "success",
