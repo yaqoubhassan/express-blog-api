@@ -112,4 +112,35 @@ const update = async (req, res) => {
   }
 };
 
-module.exports = { create, index, show, update };
+const destroy = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({
+        status: "error",
+        message: "Post not found",
+      });
+    }
+
+    if (post.author.toString() !== req.user.id) {
+      return res.status(403).json({
+        status: "error",
+        message: "Unauthorized",
+      });
+    }
+
+    await post.deleteOne();
+    res.status(204).json({
+      status: "success",
+      data: null,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "failed",
+      message: error.message,
+    });
+  }
+};
+
+module.exports = { create, index, show, update, destroy };
