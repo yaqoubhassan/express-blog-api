@@ -28,17 +28,31 @@ const index = async (req, res) => {
   try {
     const sortOrder = req.query.sort === "asc" ? 1 : -1;
 
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const skip = (page - 1) * limit;
+
+    const totalPosts = await Post.countDocuments();
+
     const posts = await Post.find()
       .populate("author", "name email")
       .populate({
         path: "comments",
         populate: { path: "author", select: "name email" },
       })
-      .sort({ createdAt: sortOrder });
+      .sort({ createdAt: sortOrder })
+      .skip(skip)
+      .limit(limit);
     res.status(200).json({
       status: "success",
       data: {
         posts,
+      },
+      metadata: {
+        totalPosts,
+        currentPage: page,
+        totalPages: Math.ceil(totalPosts / limit),
       },
     });
   } catch (error) {
