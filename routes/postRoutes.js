@@ -1,6 +1,6 @@
 const express = require("express");
 const {
-  create,
+  store,
   index,
   show,
   update,
@@ -10,7 +10,7 @@ const { authMiddleware } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.post("/", authMiddleware, create);
+router.post("/", authMiddleware, store);
 router.get("/", index);
 router.get("/:id", show);
 router.patch("/:id", authMiddleware, update);
