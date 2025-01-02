@@ -1,6 +1,6 @@
 const Post = require("../models/postModel");
 
-const create = async (req, res) => {
+const store = async (req, res) => {
   const { title, content } = req.body;
 
   try {
@@ -143,4 +143,4 @@ const destroy = async (req, res) => {
   }
 };
 
-module.exports = { create, index, show, update, destroy };
+module.exports = { store, index, show, update, destroy };
