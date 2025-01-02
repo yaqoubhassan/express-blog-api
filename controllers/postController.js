@@ -26,9 +26,11 @@ const store = async (req, res) => {
 
 const index = async (req, res) => {
   try {
+    const sortOrder = req.query.sort === "asc" ? 1 : -1;
+
     const posts = await Post.find()
       .populate("author", "name email")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: sortOrder });
     res.status(200).json({
       status: "success",
       data: {
