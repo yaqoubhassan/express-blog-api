@@ -54,4 +54,73 @@ const index = async (req, res) => {
   }
 };
 
-module.exports = { store, index };
+const update = async (req, res) => {
+  const { content } = req.body;
+
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+
+    if (!comment) {
+      return res.status(404).json({
+        status: "error",
+        message: "Comment not found",
+      });
+    }
+
+    if (comment.author.toString() !== req.user.id) {
+      return res.status(403).json({
+        status: "error",
+        message: "Unauthorized",
+      });
+    }
+
+    comment.content = content || comment.content;
+
+    const updatedComment = await comment.save();
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        updatedComment,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "failed",
+      message: error.message,
+    });
+  }
+};
+
+const destroy = async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+
+    if (!comment) {
+      return res.status(404).json({
+        status: "error",
+        message: "Comment not found",
+      });
+    }
+
+    if (comment.author.toString() !== req.user.id) {
+      return res.status(403).json({
+        status: "error",
+        message: "Unauthorized",
+      });
+    }
+
+    await comment.deleteOne();
+    res.status(204).json({
+      status: "success",
+      data: null,
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "failed",
+      message: error.message,
+    });
+  }
+};
+
+module.exports = { store, index, update, destroy };
