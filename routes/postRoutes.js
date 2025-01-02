@@ -4,6 +4,7 @@ const {
   index,
   show,
   update,
+  destroy,
 } = require("../controllers/postController");
 const { authMiddleware } = require("../middleware/authMiddleware");
 
@@ -13,5 +14,6 @@ router.post("/", authMiddleware, create);
 router.get("/", index);
 router.get("/:id", show);
 router.patch("/:id", authMiddleware, update);
+router.delete("/:id", authMiddleware, destroy);
 
 module.exports = router;
