@@ -73,10 +73,29 @@ const buildAggregationPipeline = (filters, sortOrder, skip, limit) => {
         as: "comments",
         pipeline: [
           {
+            $lookup: {
+              from: "users", // Replace 'users' with your actual collection name for comment authors
+              localField: "author",
+              foreignField: "_id",
+              as: "author",
+              pipeline: [
+                {
+                  $project: {
+                    _id: 1,
+                    name: 1,
+                    email: 1,
+                  },
+                },
+              ],
+            },
+          },
+          { $unwind: "$author" }, // Decompose comment author array into individual objects
+          {
             $project: {
               _id: 1,
               content: 1,
               createdAt: 1,
+              author: 1, // Include the populated author fields for each comment
             },
           },
         ],
@@ -92,7 +111,7 @@ const buildAggregationPipeline = (filters, sortOrder, skip, limit) => {
         content: 1, // Include post content
         createdAt: 1, // Include post creation time
         author: 1, // Include populated author fields
-        comments: 1, // Include populated comments
+        comments: 1, // Include populated comments with authors
       },
     },
   ];
