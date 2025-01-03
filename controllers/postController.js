@@ -24,35 +24,127 @@ const store = async (req, res) => {
   }
 };
 
+const buildAuthorFilter = (author) => {
+  if (!author) return {};
+  return {
+    $or: [
+      { "author.name": { $regex: author, $options: "i" } },
+      { "author.email": { $regex: author, $options: "i" } },
+      { "author._id": author },
+    ],
+  };
+};
+
+const buildSearchFilter = (search) => {
+  if (!search) return {};
+  return {
+    $or: [
+      { title: { $regex: search, $options: "i" } },
+      { content: { $regex: search, $options: "i" } },
+    ],
+  };
+};
+
+const buildAggregationPipeline = (filters, sortOrder, skip, limit) => {
+  return [
+    {
+      $lookup: {
+        from: "users", // Replace 'users' with your actual collection name for authors
+        localField: "author",
+        foreignField: "_id",
+        as: "author",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              name: 1,
+              email: 1,
+            },
+          },
+        ],
+      },
+    },
+    { $unwind: "$author" }, // Decompose author array into individual objects
+    {
+      $lookup: {
+        from: "comments", // Replace 'comments' with your actual collection name for comments
+        localField: "_id",
+        foreignField: "post", // Assuming each comment references the `Post` it belongs to via a `post` field
+        as: "comments",
+        pipeline: [
+          {
+            $project: {
+              _id: 1,
+              content: 1,
+              createdAt: 1,
+            },
+          },
+        ],
+      },
+    },
+    { $match: filters }, // Apply combined filters
+    { $sort: { createdAt: sortOrder } }, // Sort posts
+    { $skip: skip }, // Pagination: Skip posts
+    { $limit: limit }, // Pagination: Limit posts
+    {
+      $project: {
+        title: 1, // Include post title
+        content: 1, // Include post content
+        createdAt: 1, // Include post creation time
+        author: 1, // Include populated author fields
+        comments: 1, // Include populated comments
+      },
+    },
+  ];
+};
+
+const countTotalPosts = async (authorFilter, searchFilter) => {
+  const totalPosts = await Post.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "author",
+        foreignField: "_id",
+        as: "author",
+      },
+    },
+    { $unwind: "$author" },
+    {
+      $match: {
+        $and: [authorFilter, searchFilter],
+      },
+    },
+    { $count: "total" },
+  ]);
+  return totalPosts.length > 0 ? totalPosts[0].total : 0;
+};
+
 const index = async (req, res) => {
   try {
     const sortOrder = req.query.sort === "asc" ? 1 : -1;
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
-
     const skip = (page - 1) * limit;
 
-    const totalPosts = await Post.countDocuments();
+    const authorFilter = buildAuthorFilter(req.query.author);
+    const searchFilter = buildSearchFilter(req.query.search);
+    const combinedFilters = { $and: [authorFilter, searchFilter] };
 
-    const posts = await Post.find()
-      .populate("author", "name email")
-      .populate({
-        path: "comments",
-        populate: { path: "author", select: "name email" },
-      })
-      .sort({ createdAt: sortOrder })
-      .skip(skip)
-      .limit(limit);
+    const posts = await Post.aggregate(
+      buildAggregationPipeline(combinedFilters, sortOrder, skip, limit)
+    );
+
+    const total = await countTotalPosts(authorFilter, searchFilter);
+
     res.status(200).json({
       status: "success",
       data: {
         posts,
       },
       metadata: {
-        totalPosts,
+        totalPosts: total,
         currentPage: page,
-        totalPages: Math.ceil(totalPosts / limit),
+        totalPages: Math.ceil(total / limit),
       },
     });
   } catch (error) {
