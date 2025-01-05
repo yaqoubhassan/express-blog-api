@@ -5,10 +5,10 @@ const connectDB = require("../connectDB");
 const User = require("../models/userModel");
 const Post = require("../models/postModel");
 const jwt = require("jsonwebtoken");
-const {
-  redis,
-  closeRedisConnection,
-} = require("../middleware/cacheMiddleware");
+// const {
+//   redis,
+//   closeRedisConnection,
+// } = require("../middleware/cacheMiddleware");
 
 describe("Post Controller", () => {
   let server;
@@ -21,11 +21,11 @@ describe("Post Controller", () => {
     // Clean up and close the database connection
     await mongoose.connection.dropDatabase();
     await mongoose.connection.close();
-    await closeRedisConnection();
+    // await closeRedisConnection();
   });
 
   afterEach(async () => {
-    await redis.flushall();
+    // await redis.flushall();
     await User.deleteMany({});
     await Post.deleteMany({});
   });

@@ -4,7 +4,7 @@ const connectDB = require("../connectDB");
 const mongoose = require("mongoose");
 const User = require("../models/userModel"); // Adjust the path if needed
 const jwt = require("jsonwebtoken");
-const { redis } = require("../middleware/cacheMiddleware");
+// const { redis } = require("../middleware/cacheMiddleware");
 
 describe("User Controller", () => {
   let server;
@@ -18,7 +18,7 @@ describe("User Controller", () => {
     // Clean up and close the database connection
     await mongoose.connection.dropDatabase();
     await mongoose.connection.close();
-    await redis.quit();
+    // await redis.quit();
   });
 
   afterEach(async () => {
