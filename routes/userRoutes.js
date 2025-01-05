@@ -3,8 +3,10 @@ const {
   registerUser,
   loginUser,
   getUserProfile,
+  updateUserProfile,
 } = require("../controllers/userController");
 const { authMiddleware } = require("../middleware/authMiddleware");
+const upload = require("../middleware/multerConfig");
 
 const router = express.Router();
 
@@ -244,5 +246,12 @@ router.post("/login", loginUser);
  *                   example: An unexpected error occurred
  */
 router.get("/profile", authMiddleware, getUserProfile);
+
+router.put(
+  "/update",
+  authMiddleware,
+  upload.single("profilePicture"),
+  updateUserProfile
+);
 
 module.exports = router;
