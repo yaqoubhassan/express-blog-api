@@ -18,7 +18,7 @@ let app = express();
 app.use(express.json());
 
 if (process.env.NODE_ENV !== "test") {
-  connectDB(process.env.LOCAL_CONN_STR);
+  connectDB(process.env.CONN_STR);
 }
 
 app.use("/api/users", userRoutes);
