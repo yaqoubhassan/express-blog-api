@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const connectDB = require("./connectDB");
@@ -25,6 +26,7 @@ app.use("/api/posts", postRoutes);
 app.use("/api/comments", commentRoutes);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const port = process.env.PORT || 3000;
 
