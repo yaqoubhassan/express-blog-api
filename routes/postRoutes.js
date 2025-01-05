@@ -35,7 +35,8 @@ const router = express.Router();
  *                     type: string
  */
 router.post("/", authMiddleware, store);
-router.get("/", cacheMiddleware, index);
+router.get("/", index);
+// router.get("/", cacheMiddleware, index);
 router.get("/:id", show);
 router.patch("/:id", authMiddleware, update);
 router.delete("/:id", authMiddleware, destroy);
