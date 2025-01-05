@@ -77,7 +77,7 @@ const getUserProfile = async (req, res) => {
 
   if (user) {
     res.status(200).json({
-      status: "succes",
+      status: "success",
       data: {
         id: user._id,
         name: user.name,
