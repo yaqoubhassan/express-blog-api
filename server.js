@@ -5,6 +5,8 @@ const connectDB = require("./connectDB");
 const userRoutes = require("./routes/userRoutes");
 const postRoutes = require("./routes/postRoutes");
 const commentRoutes = require("./routes/commentRoutes");
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./swagger");
 
 const env = process.env.NODE_ENV || "development";
 const configFile = `config.env.${env}`;
@@ -18,24 +20,13 @@ if (process.env.NODE_ENV !== "test") {
   connectDB(process.env.LOCAL_CONN_STR);
 }
 
-// mongoose
-//   .connect(process.env.LOCAL_CONN_STR)
-//   .then((conn) => {
-//     console.log("MongoDB Connected!");
-//   })
-//   .catch((err) => {
-//     console.log("MongoDB connection error: ", err);
-//   });
-
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/comments", commentRoutes);
 
-const port = process.env.PORT || 3000;
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// app.listen(port, () => {
-//   console.log(`Server running on port ${port}`);
-// });
+const port = process.env.PORT || 3000;
 
 if (process.env.NODE_ENV !== "test") {
   const port = process.env.PORT || 3000;
