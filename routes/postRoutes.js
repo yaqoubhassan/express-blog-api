@@ -7,6 +7,7 @@ const {
   destroy,
 } = require("../controllers/postController");
 const { authMiddleware } = require("../middleware/authMiddleware");
+const upload = require("../middleware/multerConfig");
 
 const router = express.Router();
 
@@ -33,7 +34,7 @@ const router = express.Router();
  *                   content:
  *                     type: string
  */
-router.post("/", authMiddleware, store);
+router.post("/", authMiddleware, upload.single("postImage"), store);
 router.get("/", index);
 router.get("/:id", show);
 router.patch("/:id", authMiddleware, update);

@@ -10,6 +10,20 @@ const store = async (req, res) => {
       author: req.user.id,
     });
 
+    if (req.file) {
+      post.postImage = req.file.path;
+      await post.save();
+    }
+
+    // const baseUrl = `${req.protocol}://${req.get("host")}`;
+    // const postData = post.toObject();
+    // if (postData.postImage) {
+    //   postData.postImage = `${baseUrl.replace(
+    //     /\/$/,
+    //     ""
+    //   )}${postData.postData.replace(/\\/g, "/")}`;
+    // }
+
     res.status(201).json({
       status: "success",
       data: {
@@ -112,6 +126,7 @@ const buildAggregationPipeline = (filters, sortOrder, skip, limit) => {
         createdAt: 1, // Include post creation time
         author: 1, // Include populated author fields
         comments: 1, // Include populated comments with authors
+        postImage: 1,
       },
     },
   ];
