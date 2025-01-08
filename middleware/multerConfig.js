@@ -6,7 +6,7 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadPath = path.join(__dirname, "..", "uploads");
 
-    // Check if the "uploads" folder exists, create it if it doesn't
+    // Ensure the "uploads" folder exists
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -14,7 +14,8 @@ const storage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + file.originalname;
+    const uniqueSuffix =
+      Date.now() + "-" + file.originalname.replace(/\s+/g, "-");
     cb(null, uniqueSuffix);
   },
 });

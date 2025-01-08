@@ -19,15 +19,17 @@ const store = async (req, res) => {
     });
 
     if (req.file) {
-      post.postImage = req.file.path;
+      // Save the relative path in the database
+      post.postImage = `/uploads/${req.file.filename}`;
       await post.save();
     }
 
     const postData = post.toObject();
-    postData.postImage = buildImageUrl(
-      post.postImage || "/uploads/default.jpg",
-      req
-    );
+
+    // Build the full URL dynamically for the response
+    postData.postImage = post.postImage
+      ? `${req.protocol}://${req.get("host")}${post.postImage}`
+      : null;
 
     res.status(201).json({
       status: "success",
@@ -182,7 +184,9 @@ const index = async (req, res) => {
     );
 
     posts.forEach((post) => {
-      post.postImage = buildImageUrl(post.postImage, req);
+      post.postImage = post.postImage
+        ? `${req.protocol}://${req.get("host")}${post.postImage}`
+        : null;
     });
 
     const total = await countTotalPosts(authorFilter, searchFilter);
