@@ -1,5 +1,13 @@
 const Post = require("../models/postModel");
 
+// Helper function to build image URLs
+const buildImageUrl = (filePath, req) => {
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  return filePath
+    ? `${baseUrl.replace(/\/$/, "")}${filePath.replace(/\\/g, "/")}`
+    : null;
+};
+
 const store = async (req, res) => {
   const { title, content } = req.body;
 
@@ -15,19 +23,22 @@ const store = async (req, res) => {
       await post.save();
     }
 
-    // const baseUrl = `${req.protocol}://${req.get("host")}`;
-    // const postData = post.toObject();
-    // if (postData.postImage) {
-    //   postData.postImage = `${baseUrl.replace(
-    //     /\/$/,
-    //     ""
-    //   )}${postData.postData.replace(/\\/g, "/")}`;
-    // }
+    const postData = post.toObject();
+    postData.postImage = buildImageUrl(
+      post.postImage || "/uploads/default.jpg",
+      req
+    );
 
     res.status(201).json({
       status: "success",
       data: {
-        post,
+        id: postData._id,
+        title: postData.title,
+        content: postData.content,
+        author: postData.author,
+        comments: postData.comments,
+        postImage: postData.postImage,
+        createdAt: postData.createdAt,
       },
     });
   } catch (error) {
@@ -63,7 +74,7 @@ const buildAggregationPipeline = (filters, sortOrder, skip, limit) => {
   return [
     {
       $lookup: {
-        from: "users", // Replace 'users' with your actual collection name for authors
+        from: "users",
         localField: "author",
         foreignField: "_id",
         as: "author",
@@ -78,17 +89,17 @@ const buildAggregationPipeline = (filters, sortOrder, skip, limit) => {
         ],
       },
     },
-    { $unwind: "$author" }, // Decompose author array into individual objects
+    { $unwind: "$author" },
     {
       $lookup: {
-        from: "comments", // Replace 'comments' with your actual collection name for comments
+        from: "comments",
         localField: "_id",
-        foreignField: "post", // Assuming each comment references the `Post` it belongs to via a `post` field
+        foreignField: "post",
         as: "comments",
         pipeline: [
           {
             $lookup: {
-              from: "users", // Replace 'users' with your actual collection name for comment authors
+              from: "users",
               localField: "author",
               foreignField: "_id",
               as: "author",
@@ -103,30 +114,32 @@ const buildAggregationPipeline = (filters, sortOrder, skip, limit) => {
               ],
             },
           },
-          { $unwind: "$author" }, // Decompose comment author array into individual objects
+          { $unwind: "$author" },
           {
             $project: {
               _id: 1,
               content: 1,
               createdAt: 1,
-              author: 1, // Include the populated author fields for each comment
+              author: 1,
             },
           },
         ],
       },
     },
-    { $match: filters }, // Apply combined filters
-    { $sort: { createdAt: sortOrder } }, // Sort posts
-    { $skip: skip }, // Pagination: Skip posts
-    { $limit: limit }, // Pagination: Limit posts
+    { $match: filters },
+    { $sort: { createdAt: sortOrder } },
+    { $skip: skip },
+    { $limit: limit },
     {
       $project: {
-        title: 1, // Include post title
-        content: 1, // Include post content
-        createdAt: 1, // Include post creation time
-        author: 1, // Include populated author fields
-        comments: 1, // Include populated comments with authors
-        postImage: 1,
+        title: 1,
+        content: 1,
+        createdAt: 1,
+        author: 1,
+        comments: 1,
+        postImage: {
+          $ifNull: ["$postImage", "/uploads/default.jpg"], // Default image path
+        },
       },
     },
   ];
@@ -168,6 +181,10 @@ const index = async (req, res) => {
       buildAggregationPipeline(combinedFilters, sortOrder, skip, limit)
     );
 
+    posts.forEach((post) => {
+      post.postImage = buildImageUrl(post.postImage, req);
+    });
+
     const total = await countTotalPosts(authorFilter, searchFilter);
 
     res.status(200).json({
@@ -202,6 +219,11 @@ const show = async (req, res) => {
         message: "Post not found",
       });
     }
+
+    post.postImage = buildImageUrl(
+      post.postImage || "/uploads/default.jpg",
+      req
+    );
 
     res.status(200).json({
       status: "success",
