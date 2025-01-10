@@ -224,15 +224,23 @@ const show = async (req, res) => {
       });
     }
 
-    post.postImage = buildImageUrl(
-      post.postImage || "/uploads/default.jpg",
-      req
-    );
-
     res.status(200).json({
       status: "success",
       data: {
-        post,
+        post: {
+          _id: post._id,
+          title: post.title,
+          content: post.content,
+          author: {
+            name: post.author.name,
+            email: post.author.email,
+          },
+          comments: post.comments,
+          postImage: post.postImage
+            ? `${req.protocol}://${req.get("host")}${post.postImage}`
+            : null,
+          createdAt: post.createdAt,
+        },
       },
     });
   } catch (error) {
