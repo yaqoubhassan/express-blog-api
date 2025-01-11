@@ -251,10 +251,13 @@ const show = async (req, res) => {
   }
 };
 
+const fs = require("fs"); // To handle file deletion if needed
+
 const update = async (req, res) => {
   const { title, content } = req.body;
 
   try {
+    // Find the post by ID
     const post = await Post.findById(req.params.id).populate(
       "author",
       "name email"
@@ -267,6 +270,7 @@ const update = async (req, res) => {
       });
     }
 
+    // Check if the authenticated user is the author
     if (post.author.id.toString() !== req.user.id) {
       return res.status(403).json({
         status: "error",
@@ -274,10 +278,31 @@ const update = async (req, res) => {
       });
     }
 
+    // Update title and content if provided
     post.title = title || post.title;
     post.content = content || post.content;
 
+    // Handle post image update
+    if (req.file) {
+      // Assuming `req.file` contains the uploaded image (handled by multer)
+      const newImagePath = req.file.path;
+
+      // Optionally delete the old image if one exists
+      if (post.image) {
+        fs.unlink(post.image, (err) => {
+          if (err) {
+            console.error("Failed to delete old image:", err);
+          }
+        });
+      }
+
+      // Update the post's image field
+      post.image = newImagePath;
+    }
+
+    // Save the updated post
     const updatedPost = await post.save();
+
     res.status(200).json({
       status: "success",
       data: {

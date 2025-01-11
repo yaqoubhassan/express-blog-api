@@ -37,7 +37,7 @@ const router = express.Router();
 router.post("/", authMiddleware, upload.single("postImage"), store);
 router.get("/", index);
 router.get("/:id", show);
-router.patch("/:id", authMiddleware, update);
+router.patch("/:id", authMiddleware, upload.single("postImage"), update);
 router.delete("/:id", authMiddleware, destroy);
 
 module.exports = router;
