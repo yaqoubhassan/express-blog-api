@@ -5,6 +5,7 @@ const {
   show,
   update,
   destroy,
+  getUserPosts,
 } = require("../controllers/postController");
 const { authMiddleware } = require("../middleware/authMiddleware");
 const upload = require("../middleware/multerConfig");
@@ -34,6 +35,7 @@ const router = express.Router();
  *                   content:
  *                     type: string
  */
+router.get("/user-posts", authMiddleware, getUserPosts);
 router.post("/", authMiddleware, upload.single("postImage"), store);
 router.get("/", index);
 router.get("/:id", show);

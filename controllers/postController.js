@@ -348,4 +348,53 @@ const destroy = async (req, res) => {
   }
 };
 
-module.exports = { store, index, show, update, destroy };
+const getUserPosts = async (req, res) => {
+  try {
+    // Extract pagination parameters from query
+    const page = parseInt(req.query.page, 10) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit, 10) || 10; // Default to 10 posts per page
+    const skip = (page - 1) * limit;
+
+    // Fetch paginated posts
+    const totalPosts = await Post.countDocuments({ author: req.user.id });
+    const posts = await Post.find({ author: req.user.id })
+      .sort({ createdAt: -1 }) // Sort by most recent
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // Map and adjust the response
+    const updatedPosts = posts.map((post) => ({
+      _id: post._id,
+      title: post.title,
+      content: post.content,
+      author: post.author,
+      comments: post.comments || [],
+      createdAt: post.createdAt,
+      postImage: post.postImage
+        ? `${req.protocol}://${req.get("host")}${post.postImage}`
+        : null,
+    }));
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        posts: updatedPosts,
+        pagination: {
+          totalPosts,
+          currentPage: page,
+          totalPages: Math.ceil(totalPosts / limit),
+          hasNextPage: page * limit < totalPosts,
+          hasPreviousPage: page > 1,
+        },
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "failed",
+      message: error.message,
+    });
+  }
+};
+
+module.exports = { store, index, show, update, destroy, getUserPosts };
