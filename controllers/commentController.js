@@ -14,11 +14,13 @@ const store = async (req, res) => {
       });
     }
 
-    const comment = await Comment.create({
+    let comment = await Comment.create({
       content,
       author: req.user.id,
       post: req.params.postId,
     });
+
+    comment = await comment.populate("author", "name email");
 
     post.comments.push(comment._id);
     await post.save();
