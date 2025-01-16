@@ -1,4 +1,6 @@
 const Post = require("../models/postModel");
+const fs = require("fs");
+const path = require("path");
 
 // Helper function to build image URLs
 const buildImageUrl = (filePath, req) => {
@@ -251,8 +253,6 @@ const show = async (req, res) => {
   }
 };
 
-const fs = require("fs"); // To handle file deletion if needed
-
 const update = async (req, res) => {
   const { title, content } = req.body;
 
@@ -284,20 +284,20 @@ const update = async (req, res) => {
 
     // Handle post image update
     if (req.file) {
-      // Assuming `req.file` contains the uploaded image (handled by multer)
-      const newImagePath = req.file.path;
-
-      // Optionally delete the old image if one exists
-      if (post.image) {
-        fs.unlink(post.image, (err) => {
-          if (err) {
-            console.error("Failed to delete old image:", err);
-          }
-        });
+      if (post.postImage) {
+        const absolutePath = path.join(__dirname, "..", post.postImage);
+        if (fs.existsSync(absolutePath)) {
+          fs.unlink(absolutePath, (err) => {
+            if (err) {
+              console.error("Failed to delete old image:", err);
+            }
+          });
+        } else {
+          console.warn("File not found, skipping deletion:", absolutePath);
+        }
       }
 
-      // Update the post's image field
-      post.image = newImagePath;
+      post.postImage = `/uploads/${req.file.filename}`;
     }
 
     // Save the updated post
