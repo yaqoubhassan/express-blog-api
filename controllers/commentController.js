@@ -81,7 +81,8 @@ const update = async (req, res) => {
 
     comment.content = content || comment.content;
 
-    const updatedComment = await comment.save();
+    let updatedComment = await comment.save();
+    updatedComment = await updatedComment.populate("author", "name email");
 
     res.status(200).json({
       status: "success",
