@@ -22,6 +22,7 @@ if (process.env.NODE_ENV !== "test") {
   connectDB(process.env.CONN_STR);
 }
 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(cors());
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
